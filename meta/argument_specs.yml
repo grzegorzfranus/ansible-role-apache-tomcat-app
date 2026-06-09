@@ -1,0 +1,272 @@
+---
+argument_specs:
+  main:
+    short_description: "Manage Apache Tomcat application contexts and configuration"
+    description:
+      - "Manages Apache Tomcat application contexts, JNDI DataSources, application config files,"
+      - "Environment entries, Resource Links, Context Parameters, and optional JDBC drivers."
+      - "Enterprise companion to the apache_tomcat role."
+      - "Supports EL 9 (Rocky Linux, RHEL, AlmaLinux, CentOS Stream)."
+    author: "Grzegorz Franus"
+
+    options:
+      # -----------------------------------------------------------------
+      # 1. Tomcat Integration
+      # -----------------------------------------------------------------
+      tomcat_app_catalina_base:
+        description: "Full path to the Tomcat instance data directory (CATALINA_BASE). Must match the apache_tomcat role."
+        type: str
+        default: "/opt/tomcat/instance"
+
+      tomcat_app_user:
+        description: "System user that runs the Tomcat process. Must match the apache_tomcat role."
+        type: str
+        default: "tomcat"
+
+      tomcat_app_group:
+        description: "System group for the Tomcat process. Must match the apache_tomcat role."
+        type: str
+        default: "tomcat"
+
+      tomcat_app_service_name:
+        description: "Name of the systemd service unit. Must match the apache_tomcat role."
+        type: str
+        default: "tomcat"
+
+      # -----------------------------------------------------------------
+      # 2. Application Contexts
+      # -----------------------------------------------------------------
+      tomcat_app_contexts:
+        description: >
+          List of application context definitions. Each element is a dict describing
+          one Tomcat application with optional DataSources, Environment entries,
+          Resource Links, Context Parameters, and config files.
+        type: list
+        elements: dict
+        default: []
+        options:
+          name:
+            description: "Name of the context XML file (without .xml extension). REQUIRED."
+            type: str
+            required: true
+
+          doc_base:
+            description: "docBase attribute for the Context element (e.g. 'myapp.war')."
+            type: str
+
+          reload_on_change:
+            description: "Set reloadable attribute. false is recommended for security and performance."
+            type: bool
+            default: false
+
+          privileged:
+            description: "Whether this context runs as a privileged context."
+            type: bool
+            default: false
+
+          override:
+            description: "Whether to override Host-level configuration."
+            type: bool
+            default: true
+
+          anti_resource_locking:
+            description: "Enable antiResourceLocking for hot-redeploy support on Windows/locked files."
+            type: bool
+            default: false
+
+          spring_config_location:
+            description: >
+              Automatically add a Context Parameter 'spring.config.additional-location' pointing
+              to CATALINA_BASE/config/<name>/. Enables Spring Boot to load externalized properties.
+            type: bool
+            default: false
+
+          config_files:
+            description: >
+              List of application config files to ensure exist in an isolated per-app
+              directory (CATALINA_BASE/config/<name>/). The role creates empty files with
+              correct ownership and permissions if they do not exist. File content is NOT
+              managed by this role — it is the user's or CI/CD pipeline's responsibility.
+            type: list
+            elements: dict
+            options:
+              filename:
+                description: "Filename to ensure exists in the per-app config directory. REQUIRED."
+                type: str
+                required: true
+
+          datasources:
+            description: "List of JNDI DataSource (connection pool) definitions for this context."
+            type: list
+            elements: dict
+            options:
+              jndi_name:
+                description: "JNDI name for the DataSource (e.g. 'jdbc/MyDB'). REQUIRED."
+                type: str
+                required: true
+              driver_class:
+                description: "Fully qualified JDBC driver class name. REQUIRED."
+                type: str
+                required: true
+              url:
+                description: "JDBC connection URL. REQUIRED."
+                type: str
+                required: true
+              username:
+                description: "Database username. REQUIRED."
+                type: str
+                required: true
+              password:
+                description: "Database password. Use Ansible Vault! REQUIRED."
+                type: str
+                required: true
+                no_log: true
+              max_total:
+                description: "Maximum number of active connections in the pool."
+                type: int
+                default: 50
+              max_idle:
+                description: "Maximum number of idle connections in the pool."
+                type: int
+                default: 10
+              min_idle:
+                description: "Minimum number of idle connections in the pool."
+                type: int
+                default: 5
+              max_wait_millis:
+                description: "Maximum wait time in milliseconds for a connection from the pool."
+                type: int
+                default: 10000
+              validation_query:
+                description: "SQL query used to validate connections."
+                type: str
+                default: "SELECT 1"
+              validation_interval:
+                description: "Interval in milliseconds between validation checks."
+                type: int
+                default: 30000
+              test_on_borrow:
+                description: "Validate connections when borrowed from the pool."
+                type: bool
+                default: true
+              test_while_idle:
+                description: "Validate idle connections periodically."
+                type: bool
+                default: true
+              remove_abandoned:
+                description: "Remove abandoned (leaked) connections."
+                type: bool
+                default: true
+              remove_abandoned_timeout:
+                description: "Timeout in seconds before a connection is considered abandoned."
+                type: int
+                default: 300
+              log_abandoned:
+                description: "Log stack trace of code that abandoned a connection."
+                type: bool
+                default: true
+
+          environments:
+            description: "List of JNDI Environment entry definitions for this context."
+            type: list
+            elements: dict
+            options:
+              name:
+                description: "JNDI name of the environment entry. REQUIRED."
+                type: str
+                required: true
+              type:
+                description: "Fully qualified Java type (e.g. 'java.lang.String'). REQUIRED."
+                type: str
+                required: true
+              value:
+                description: "Value of the environment entry. REQUIRED."
+                type: str
+                required: true
+              override:
+                description: "Whether the application can override this value."
+                type: bool
+                default: false
+
+          resource_links:
+            description: "List of Resource Link definitions for this context."
+            type: list
+            elements: dict
+            options:
+              name:
+                description: "JNDI name of the resource in this context. REQUIRED."
+                type: str
+                required: true
+              global:
+                description: "Global JNDI name of the linked resource. REQUIRED."
+                type: str
+                required: true
+              type:
+                description: "Fully qualified Java type of the resource. REQUIRED."
+                type: str
+                required: true
+
+          parameters:
+            description: "List of Context Parameter definitions."
+            type: list
+            elements: dict
+            options:
+              name:
+                description: "Parameter name. REQUIRED."
+                type: str
+                required: true
+              value:
+                description: "Parameter value. REQUIRED."
+                type: str
+                required: true
+              override:
+                description: "Whether the application can override this parameter."
+                type: bool
+                default: false
+
+      # -----------------------------------------------------------------
+      # 3. JDBC Drivers
+      # -----------------------------------------------------------------
+      tomcat_app_jdbc_drivers:
+        description: >
+          Optional list of JDBC driver JARs to download and install in CATALINA_BASE/lib/.
+          Tomcat does not ship with any JDBC drivers — they must be provided separately.
+        type: list
+        elements: dict
+        default: []
+        options:
+          name:
+            description: "Human-readable identifier for this driver. REQUIRED."
+            type: str
+            required: true
+          url:
+            description: "Download URL for the JDBC driver JAR. REQUIRED."
+            type: str
+            required: true
+          filename:
+            description: "Destination filename in CATALINA_BASE/lib/. REQUIRED."
+            type: str
+            required: true
+          checksum:
+            description: "Checksum for download verification (format: 'sha256:HASH'). Recommended."
+            type: str
+
+      # -----------------------------------------------------------------
+      # 4. Context Management
+      # -----------------------------------------------------------------
+      tomcat_app_context_file_mode:
+        description: "File permissions for context XML files."
+        type: str
+        default: "0640"
+
+      tomcat_app_config_file_mode:
+        description: "File permissions for application config files (application.properties, etc.)."
+        type: str
+        default: "0640"
+
+      tomcat_app_purge_unmanaged:
+        description: >
+          Remove context XML files from conf/Catalina/localhost/ that are not defined
+          in tomcat_app_contexts. Disabled by default for safety.
+        type: bool
+        default: false

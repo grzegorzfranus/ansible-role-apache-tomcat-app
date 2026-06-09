@@ -1,0 +1,131 @@
+---
+# =============================================================================
+# Ansible Role: Apache Tomcat App - Default Variables
+# =============================================================================
+# This file defines default configuration values for the Apache Tomcat App role.
+# These values can be overridden by setting them in your playbook or inventory.
+#
+# Supported OS distributions:
+# - EL9: Rocky Linux 9, RHEL 9, AlmaLinux 9, CentOS Stream 9
+#
+# Sections:
+#   1. Tomcat Integration
+#   2. Application Contexts
+#   3. JDBC Drivers
+#   4. Context Management
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Tomcat Integration
+# -----------------------------------------------------------------------------
+# Paths and identifiers matching the apache_tomcat role. Re-declared here for
+# role independence. Values must match your apache_tomcat role configuration.
+
+# Full path to the Tomcat instance data directory (CATALINA_BASE)
+tomcat_app_catalina_base: "/opt/tomcat/instance"
+
+# System user that runs the Tomcat process
+tomcat_app_user: "tomcat"
+
+# System group for the Tomcat process
+tomcat_app_group: "tomcat"
+
+# Name of the systemd service unit
+tomcat_app_service_name: "tomcat"
+
+# -----------------------------------------------------------------------------
+# 2. Application Contexts
+# -----------------------------------------------------------------------------
+# List of application context definitions. Each element describes one Tomcat
+# application with its context XML, optional DataSources, config files,
+# Environment entries, Resource Links, and Context Parameters.
+
+# List of application contexts to deploy
+# See meta/argument_specs.yml for full schema documentation.
+#
+# Example:
+#   tomcat_app_contexts:
+#     - name: "myapp"
+#       doc_base: "myapp.war"
+#       reload_on_change: false
+#       privileged: false
+#       override: true
+#       anti_resource_locking: false
+#       spring_config_location: true
+#
+#       # List of config files to ensure exist with correct permissions.
+#       # The role creates empty files if they do not exist and ensures
+#       # ownership (root:tomcat) and permissions. Content is NOT managed
+#       # by this role — it is the user's/CI/CD pipeline's responsibility.
+#       config_files:
+#         - filename: "application.properties"
+#         - filename: "logback-spring.xml"
+#
+#       datasources:
+#         - jndi_name: "jdbc/MyDB"
+#           driver_class: "org.postgresql.Driver"
+#           url: "jdbc:postgresql://192.0.2.10:5432/mydb"
+#           username: "appuser"
+#           password: "{{ vault_myapp_db_password }}"
+#           max_total: 50
+#           max_idle: 10
+#           min_idle: 5
+#           max_wait_millis: 10000
+#           validation_query: "SELECT 1"
+#           test_on_borrow: true
+#           test_while_idle: true
+#           remove_abandoned: true
+#           remove_abandoned_timeout: 300
+#           log_abandoned: true
+#
+#       environments:
+#         - name: "config/appMode"
+#           type: "java.lang.String"
+#           value: "production"
+#           override: false
+#
+#       resource_links:
+#         - name: "jdbc/SharedDB"
+#           global: "jdbc/GlobalDB"
+#           type: "javax.sql.DataSource"
+#
+#       parameters:
+#         - name: "env"
+#           value: "production"
+#           override: false
+tomcat_app_contexts: []
+
+# -----------------------------------------------------------------------------
+# 3. JDBC Drivers
+# -----------------------------------------------------------------------------
+# Optional list of JDBC driver JARs to download and install in CATALINA_BASE/lib/.
+# Tomcat does not ship with any JDBC drivers — they must be provided separately.
+
+# List of JDBC drivers to install
+#
+# Example:
+#   tomcat_app_jdbc_drivers:
+#     - name: "postgresql"
+#       url: "https://jdbc.postgresql.org/download/postgresql-42.7.5.jar"
+#       checksum: "sha256:XXXX"
+#       filename: "postgresql-42.7.5.jar"
+#     - name: "mysql"
+#       url: "https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.2.0/mysql-connector-j-9.2.0.jar"
+#       filename: "mysql-connector-j-9.2.0.jar"
+tomcat_app_jdbc_drivers: []
+
+# -----------------------------------------------------------------------------
+# 4. Context Management
+# -----------------------------------------------------------------------------
+# File permissions and context lifecycle management settings.
+
+# File permissions for context XML files in conf/Catalina/localhost/
+tomcat_app_context_file_mode: "0640"
+
+# File permissions for application config files (application.properties, etc.)
+tomcat_app_config_file_mode: "0640"
+
+# Remove context XML files from conf/Catalina/localhost/ that are NOT defined
+# in tomcat_app_contexts. Disabled by default for safety.
+# WARNING: Enabling this will delete ALL unmanaged .xml files in the context directory.
+tomcat_app_purge_unmanaged: false

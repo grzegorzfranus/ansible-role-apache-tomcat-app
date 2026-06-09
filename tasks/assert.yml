@@ -1,0 +1,241 @@
+---
+# =============================================================================
+# Ansible Role: Apache Tomcat App - Tasks: Assert
+# =============================================================================
+# Validates all role variables from defaults/main.yml for type, range, and
+# pattern correctness. Ensures the target OS is supported (EL9 only).
+# No become required — validation tasks are read-only.
+# =============================================================================
+
+# --- OS validation ---
+
+- name: TomcatApp | assert | Check if OS is supported
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] == 'RedHat'
+      - ansible_facts['distribution_major_version'] == '9'
+    fail_msg: >-
+      This role only supports EL9 (RHEL 9, Rocky Linux 9, AlmaLinux 9).
+      Detected: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
+    success_msg: "Running on supported OS: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}"
+
+# --- Section 1: Tomcat Integration ---
+
+- name: TomcatApp | assert | Validate Tomcat integration settings
+  ansible.builtin.assert:
+    that:
+      - tomcat_app_catalina_base is defined
+      - tomcat_app_catalina_base is string
+      - tomcat_app_catalina_base is match('^/')
+      - tomcat_app_user is defined
+      - tomcat_app_user is string
+      - tomcat_app_user | length > 0
+      - tomcat_app_group is defined
+      - tomcat_app_group is string
+      - tomcat_app_group | length > 0
+      - tomcat_app_service_name is defined
+      - tomcat_app_service_name is string
+      - tomcat_app_service_name | length > 0
+    fail_msg: >-
+      Invalid Tomcat integration settings. catalina_base must be an absolute path,
+      user/group/service_name must be non-empty strings.
+    success_msg: >-
+      Tomcat integration validated: base={{ tomcat_app_catalina_base }},
+      user={{ tomcat_app_user }}, group={{ tomcat_app_group }}
+
+# --- Section 2: Application Contexts ---
+
+- name: TomcatApp | assert | Validate contexts list type
+  ansible.builtin.assert:
+    that:
+      - tomcat_app_contexts is defined
+      - tomcat_app_contexts is iterable
+    fail_msg: "tomcat_app_contexts must be a list."
+    success_msg: "Contexts list validated: {{ tomcat_app_contexts | length }} context(s) defined"
+
+- name: TomcatApp | assert | Validate context name for each context
+  ansible.builtin.assert:
+    that:
+      - item.name is defined
+      - item.name is string
+      - item.name | length > 0
+      - item.name is match('^[a-zA-Z0-9_-]+$')
+    fail_msg: >-
+      Invalid context name '{{ item.name | default("UNDEFINED") }}'.
+      Must be a non-empty string matching ^[a-zA-Z0-9_-]+$ (no dots, slashes, or spaces).
+    success_msg: "Context name validated: {{ item.name }}"
+  loop: "{{ tomcat_app_contexts }}"
+  loop_control:
+    label: "{{ item.name | default('UNNAMED') }}"
+
+- name: TomcatApp | assert | Validate config_files entries
+  ansible.builtin.assert:
+    that:
+      - cf_item.filename is defined
+      - cf_item.filename is string
+      - cf_item.filename | length > 0
+      - "'../' not in cf_item.filename"
+    fail_msg: >-
+      Invalid config_file entry. filename is required and must not contain '../' (path traversal).
+    success_msg: "Config file validated: {{ cf_item.filename }}"
+  loop: >-
+    {{ tomcat_app_contexts
+       | selectattr('config_files', 'defined')
+       | map(attribute='config_files', default=[])
+       | flatten
+       | list }}
+  loop_control:
+    loop_var: cf_item
+    label: "{{ cf_item.filename | default('UNNAMED') }}"
+  when:
+    - tomcat_app_contexts | selectattr('config_files', 'defined') | list | length > 0
+
+- name: TomcatApp | assert | Validate DataSource entries
+  ansible.builtin.assert:
+    that:
+      - ds_item.jndi_name is defined
+      - ds_item.jndi_name is string
+      - ds_item.jndi_name | length > 0
+      - ds_item.driver_class is defined
+      - ds_item.driver_class is string
+      - ds_item.driver_class | length > 0
+      - ds_item.url is defined
+      - ds_item.url is string
+      - ds_item.url | length > 0
+      - ds_item.username is defined
+      - ds_item.username is string
+      - ds_item.password is defined
+      - ds_item.password is string
+    fail_msg: >-
+      Invalid DataSource entry. jndi_name, driver_class, url, username, and password
+      are all required fields.
+    success_msg: "DataSource validated: {{ ds_item.jndi_name }}"
+  loop: >-
+    {{ tomcat_app_contexts
+       | selectattr('datasources', 'defined')
+       | map(attribute='datasources', default=[])
+       | flatten
+       | list }}
+  loop_control:
+    loop_var: ds_item
+    label: "{{ ds_item.jndi_name | default('UNNAMED') }}"
+  no_log: true
+  when:
+    - tomcat_app_contexts | selectattr('datasources', 'defined') | list | length > 0
+
+- name: TomcatApp | assert | Validate Environment entries
+  ansible.builtin.assert:
+    that:
+      - env_item.name is defined
+      - env_item.name is string
+      - env_item.name | length > 0
+      - env_item.type is defined
+      - env_item.type is string
+      - env_item.type | length > 0
+      - env_item.value is defined
+    fail_msg: >-
+      Invalid Environment entry. name, type, and value are all required fields.
+    success_msg: "Environment entry validated: {{ env_item.name }}"
+  loop: >-
+    {{ tomcat_app_contexts
+       | selectattr('environments', 'defined')
+       | map(attribute='environments', default=[])
+       | flatten
+       | list }}
+  loop_control:
+    loop_var: env_item
+    label: "{{ env_item.name | default('UNNAMED') }}"
+  when:
+    - tomcat_app_contexts | selectattr('environments', 'defined') | list | length > 0
+
+- name: TomcatApp | assert | Validate Resource Link entries
+  ansible.builtin.assert:
+    that:
+      - rl_item.name is defined
+      - rl_item.name is string
+      - rl_item.name | length > 0
+      - rl_item.global is defined
+      - rl_item.global is string
+      - rl_item.global | length > 0
+      - rl_item.type is defined
+      - rl_item.type is string
+      - rl_item.type | length > 0
+    fail_msg: >-
+      Invalid Resource Link entry. name, global, and type are all required fields.
+    success_msg: "Resource Link validated: {{ rl_item.name }}"
+  loop: >-
+    {{ tomcat_app_contexts
+       | selectattr('resource_links', 'defined')
+       | map(attribute='resource_links', default=[])
+       | flatten
+       | list }}
+  loop_control:
+    loop_var: rl_item
+    label: "{{ rl_item.name | default('UNNAMED') }}"
+  when:
+    - tomcat_app_contexts | selectattr('resource_links', 'defined') | list | length > 0
+
+- name: TomcatApp | assert | Validate Context Parameter entries
+  ansible.builtin.assert:
+    that:
+      - param_item.name is defined
+      - param_item.name is string
+      - param_item.name | length > 0
+      - param_item.value is defined
+    fail_msg: >-
+      Invalid Context Parameter entry. name and value are required fields.
+    success_msg: "Context Parameter validated: {{ param_item.name }}"
+  loop: >-
+    {{ tomcat_app_contexts
+       | selectattr('parameters', 'defined')
+       | map(attribute='parameters', default=[])
+       | flatten
+       | list }}
+  loop_control:
+    loop_var: param_item
+    label: "{{ param_item.name | default('UNNAMED') }}"
+  when:
+    - tomcat_app_contexts | selectattr('parameters', 'defined') | list | length > 0
+
+# --- Section 3: JDBC Drivers ---
+
+- name: TomcatApp | assert | Validate JDBC driver entries
+  ansible.builtin.assert:
+    that:
+      - jdbc_item.name is defined
+      - jdbc_item.name is string
+      - jdbc_item.name | length > 0
+      - jdbc_item.url is defined
+      - jdbc_item.url is string
+      - jdbc_item.url | length > 0
+      - jdbc_item.filename is defined
+      - jdbc_item.filename is string
+      - jdbc_item.filename | length > 0
+    fail_msg: >-
+      Invalid JDBC driver entry. name, url, and filename are all required fields.
+    success_msg: "JDBC driver validated: {{ jdbc_item.name }} ({{ jdbc_item.filename }})"
+  loop: "{{ tomcat_app_jdbc_drivers }}"
+  loop_control:
+    loop_var: jdbc_item
+    label: "{{ jdbc_item.name | default('UNNAMED') }}"
+  when:
+    - tomcat_app_jdbc_drivers | length > 0
+
+# --- Section 4: Context Management ---
+
+- name: TomcatApp | assert | Validate context management settings
+  ansible.builtin.assert:
+    that:
+      - tomcat_app_context_file_mode is defined
+      - tomcat_app_context_file_mode is string
+      - tomcat_app_context_file_mode is match('^0[0-7]{3}$')
+      - tomcat_app_config_file_mode is defined
+      - tomcat_app_config_file_mode is string
+      - tomcat_app_config_file_mode is match('^0[0-7]{3}$')
+      - tomcat_app_purge_unmanaged is defined
+    fail_msg: >-
+      Invalid context management settings. File modes must match ^0[0-7]{3}$,
+      purge_unmanaged must be defined.
+    success_msg: >-
+      Context management validated: context_mode={{ tomcat_app_context_file_mode }},
+      config_mode={{ tomcat_app_config_file_mode }}, purge={{ tomcat_app_purge_unmanaged }}

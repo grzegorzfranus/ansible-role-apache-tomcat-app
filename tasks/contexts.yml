@@ -1,0 +1,24 @@
+---
+# =============================================================================
+# Ansible Role: Apache Tomcat App - Tasks: Contexts
+# =============================================================================
+# Templates and deploys context XML files to conf/Catalina/localhost/.
+# Each file defines a Tomcat application with its DataSources, Environment
+# entries, Resource Links, and Context Parameters.
+# =============================================================================
+
+- name: TomcatApp | contexts | Template context XML files
+  become: true
+  ansible.builtin.template:
+    src: context.xml.j2
+    dest: "{{ __tomcat_app_context_dir }}/{{ ctx_item.name }}.xml"
+    owner: root
+    group: "{{ tomcat_app_group }}"
+    mode: "{{ tomcat_app_context_file_mode }}"
+  loop: "{{ tomcat_app_contexts }}"
+  loop_control:
+    loop_var: ctx_item
+    label: "{{ ctx_item.name }}.xml"
+  no_log: true
+  notify:
+    - TomcatApp | handlers | Restart Tomcat service

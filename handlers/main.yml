@@ -1,0 +1,12 @@
+---
+# =============================================================================
+# Ansible Role: Apache Tomcat App - Handlers
+# =============================================================================
+# Service management operations triggered by tasks via notify directives.
+# =============================================================================
+
+- name: TomcatApp | handlers | Restart Tomcat service
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ tomcat_app_service_name }}"
+    state: restarted

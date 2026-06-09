@@ -1,0 +1,28 @@
+---
+# =============================================================================
+# Ansible Role: Apache Tomcat App - Tasks: Config Files
+# =============================================================================
+# Deploys application configuration files (e.g. application.properties,
+# logback-spring.xml) to isolated per-app directories under
+# CATALINA_BASE/config/<app_name>/. Supports sensitive files via no_log.
+# =============================================================================
+
+- name: TomcatApp | config_files | Create per-app config directories
+  become: true
+  ansible.builtin.file:
+    path: "{{ __tomcat_app_config_base_dir }}/{{ ctx_item.name }}"
+    state: directory
+    owner: root
+    group: "{{ tomcat_app_group }}"
+    mode: "0750"
+  loop: "{{ tomcat_app_contexts | selectattr('config_files', 'defined') | list }}"
+  loop_control:
+    loop_var: ctx_item
+    label: "config/{{ ctx_item.name }}/"
+
+- name: TomcatApp | config_files | Deploy config files for each application
+  ansible.builtin.include_tasks: config_files_deploy.yml
+  loop: "{{ tomcat_app_contexts | selectattr('config_files', 'defined') | list }}"
+  loop_control:
+    loop_var: __tomcat_app_ctx
+    label: "{{ __tomcat_app_ctx.name }}"

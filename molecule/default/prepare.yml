@@ -1,0 +1,43 @@
+---
+# Apache Tomcat App Molecule — Prepare for default scenario.
+
+- name: Molecule | Prepare
+  hosts: all
+
+  tasks:
+    - name: Prepare | Fix /etc/shadow permissions
+      ansible.builtin.file:
+        path: /etc/shadow
+        mode: "0400"
+
+    - name: Prepare | Update dnf cache
+      ansible.builtin.dnf:
+        update_cache: true
+      changed_when: false
+
+    - name: Prepare | Install Java JDK
+      ansible.builtin.dnf:
+        name: java-17-openjdk-headless
+        state: present
+
+    - name: Prepare | Wait for systemd to complete initialization
+      ansible.builtin.systemd:
+        name: multi-user.target
+        state: started
+      register: systemctl_status
+      until: true
+      retries: 30
+      delay: 5
+      when:
+        - ansible_facts['service_mgr'] == 'systemd'
+      changed_when: false
+      failed_when: false
+
+    - name: Prepare | Install Apache Tomcat via role
+      ansible.builtin.include_role:
+        name: grzegorzfranus.apache_tomcat
+      vars:
+        tomcat_enable_hardening: true
+        tomcat_enable_cicd: false
+        tomcat_enable_jmx: false
+        tomcat_ssl_generate_self_signed: true

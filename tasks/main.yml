@@ -1,0 +1,45 @@
+---
+# =============================================================================
+# Ansible Role: Apache Tomcat App - Tasks: Main
+# =============================================================================
+# Orchestrates role execution in order.
+# Flow: assert → jdbc_drivers → config_files → contexts → purge
+# =============================================================================
+
+- name: TomcatApp | assert | Validate all role variables
+  ansible.builtin.include_tasks: assert.yml
+  tags:
+    - always
+    - validate
+
+- name: TomcatApp | jdbc_drivers | Install JDBC drivers
+  ansible.builtin.include_tasks: jdbc_drivers.yml
+  when:
+    - tomcat_app_jdbc_drivers | length > 0
+  tags:
+    - configure
+    - jdbc
+
+- name: TomcatApp | config_files | Deploy application config files
+  ansible.builtin.include_tasks: config_files.yml
+  when:
+    - tomcat_app_contexts | selectattr('config_files', 'defined') | list | length > 0
+  tags:
+    - configure
+    - config
+
+- name: TomcatApp | contexts | Deploy application context files
+  ansible.builtin.include_tasks: contexts.yml
+  when:
+    - tomcat_app_contexts | length > 0
+  tags:
+    - configure
+    - contexts
+
+- name: TomcatApp | purge | Remove unmanaged context files
+  ansible.builtin.include_tasks: purge.yml
+  when:
+    - tomcat_app_purge_unmanaged | bool
+  tags:
+    - configure
+    - purge

@@ -1,0 +1,32 @@
+---
+galaxy_info:
+  role_name: apache_tomcat_app
+  author: Grzegorz Franus
+  namespace: grzegorzfranus
+  description: >
+    Ansible role for managing Apache Tomcat application contexts, JNDI DataSources,
+    application config files, Environment entries, and Resource Links.
+    Enterprise companion to apache_tomcat role.
+  license: Apache-2.0
+  company: EWARE
+  min_ansible_version: "2.16"
+
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+
+  galaxy_tags:
+    - tomcat
+    - java
+    - jndi
+    - datasource
+    - context
+    - deployment
+    - applicationserver
+    - enterprise
+
+# Dependencies: grzegorzfranus.apache_tomcat must be executed before this role.
+# Not declared as a Galaxy dependency to avoid CI syntax-check failures in
+# standalone repository pipelines. The dependency is enforced at playbook level.
+dependencies: []

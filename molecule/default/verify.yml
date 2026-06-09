@@ -1,0 +1,116 @@
+---
+# Apache Tomcat App Molecule — Verify default scenario results.
+
+- name: Molecule | Verify Role
+  hosts: all
+  gather_facts: true
+  vars:
+    tomcat_app_catalina_base: "/opt/tomcat/instance"
+
+  tasks:
+    # --- Context XML verification ---
+    - name: Verify | Check context XML exists
+      ansible.builtin.stat:
+        path: "{{ tomcat_app_catalina_base }}/conf/Catalina/localhost/testapp.xml"
+      register: __verify_context_xml
+
+    - name: Verify | Assert context XML exists with correct permissions
+      ansible.builtin.assert:
+        that:
+          - __verify_context_xml.stat.exists
+          - __verify_context_xml.stat.mode == '0640'
+          - __verify_context_xml.stat.gr_name == 'tomcat'
+        fail_msg: "Context XML not found or wrong permissions"
+        success_msg: "Context XML verified (mode: {{ __verify_context_xml.stat.mode }})"
+
+    - name: Verify | Read context XML content
+      ansible.builtin.slurp:
+        src: "{{ tomcat_app_catalina_base }}/conf/Catalina/localhost/testapp.xml"
+      register: __verify_context_content
+
+    - name: Verify | Assert context XML contains expected elements
+      ansible.builtin.assert:
+        that:
+          - "'docBase=\"testapp.war\"' in (__verify_context_content.content | b64decode)"
+          - "'reloadable=\"false\"' in (__verify_context_content.content | b64decode)"
+          - "'<Resource name=\"jdbc/TestDB\"' in (__verify_context_content.content | b64decode)"
+          - "'driverClassName=\"org.postgresql.Driver\"' in (__verify_context_content.content | b64decode)"
+          - "'<Environment name=\"config/appMode\"' in (__verify_context_content.content | b64decode)"
+          - "'value=\"test\"' in (__verify_context_content.content | b64decode)"
+          - "'<Parameter name=\"env\"' in (__verify_context_content.content | b64decode)"
+          - "'<Parameter name=\"spring.config.additional-location\"' in (__verify_context_content.content | b64decode)"
+          - "'file:/opt/tomcat/instance/config/testapp/' in (__verify_context_content.content | b64decode)"
+        fail_msg: "Context XML is missing expected elements"
+        success_msg: "Context XML content verified (DataSource, Environment, Parameters, spring.config)"
+
+    # --- Config directory verification ---
+    - name: Verify | Check per-app config directory exists
+      ansible.builtin.stat:
+        path: "{{ tomcat_app_catalina_base }}/config/testapp"
+      register: __verify_config_dir
+
+    - name: Verify | Assert config directory exists with correct permissions
+      ansible.builtin.assert:
+        that:
+          - __verify_config_dir.stat.exists
+          - __verify_config_dir.stat.isdir
+          - __verify_config_dir.stat.mode == '0750'
+          - __verify_config_dir.stat.gr_name == 'tomcat'
+        fail_msg: "Per-app config directory not found or wrong permissions"
+        success_msg: "Config directory verified (mode: {{ __verify_config_dir.stat.mode }})"
+
+    # --- Config files verification ---
+    - name: Verify | Check application.properties exists
+      ansible.builtin.stat:
+        path: "{{ tomcat_app_catalina_base }}/config/testapp/application.properties"
+      register: __verify_app_properties
+
+    - name: Verify | Assert application.properties exists with correct permissions
+      ansible.builtin.assert:
+        that:
+          - __verify_app_properties.stat.exists
+          - __verify_app_properties.stat.mode == '0640'
+          - __verify_app_properties.stat.gr_name == 'tomcat'
+        fail_msg: "application.properties not found or wrong permissions"
+        success_msg: "application.properties verified (mode: {{ __verify_app_properties.stat.mode }})"
+
+    - name: Verify | Check logback-spring.xml exists
+      ansible.builtin.stat:
+        path: "{{ tomcat_app_catalina_base }}/config/testapp/logback-spring.xml"
+      register: __verify_logback
+
+    - name: Verify | Assert logback-spring.xml exists with correct permissions
+      ansible.builtin.assert:
+        that:
+          - __verify_logback.stat.exists
+          - __verify_logback.stat.mode == '0640'
+          - __verify_logback.stat.gr_name == 'tomcat'
+        fail_msg: "logback-spring.xml not found or wrong permissions"
+        success_msg: "logback-spring.xml verified (mode: {{ __verify_logback.stat.mode }})"
+
+    - name: Verify | Assert application.properties is an empty file (content managed externally)
+      ansible.builtin.assert:
+        that:
+          - __verify_app_properties.stat.size == 0
+        fail_msg: "application.properties should be empty (role creates empty files, content managed externally)"
+        success_msg: "application.properties is empty (as expected)"
+
+    # --- Security: file ownership verification ---
+    - name: Verify | Assert context XML is owned by root
+      ansible.builtin.assert:
+        that:
+          - __verify_context_xml.stat.pw_name == 'root'
+        fail_msg: "Context XML should be owned by root (defense-in-depth)"
+        success_msg: "Context XML ownership verified (root:tomcat)"
+
+    - name: Verify | Assert config files are owned by root
+      ansible.builtin.assert:
+        that:
+          - __verify_app_properties.stat.pw_name == 'root'
+          - __verify_logback.stat.pw_name == 'root'
+        fail_msg: "Config files should be owned by root (defense-in-depth)"
+        success_msg: "Config files ownership verified (root:tomcat)"
+
+    - name: Verify | All checks completed successfully
+      ansible.builtin.debug:
+        msg: "All Apache Tomcat App default scenario verification checks passed"
