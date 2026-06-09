@@ -1,0 +1,55 @@
+---
+# Apache Tomcat App Molecule — Converge for default scenario.
+
+- name: Molecule | Converge
+  hosts: all
+
+  pre_tasks:
+    - name: Converge | Wait for systemd to complete initialization
+      ansible.builtin.systemd:
+        name: multi-user.target
+        state: started
+      register: systemctl_status
+      until: true
+      retries: 30
+      delay: 5
+      when:
+        - ansible_facts['service_mgr'] == 'systemd'
+      changed_when: false
+      failed_when: false
+
+  vars:
+    tomcat_app_contexts:
+      - name: "testapp"
+        doc_base: "testapp.war"
+        reload_on_change: false
+        spring_config_location: true
+
+        config_files:
+          - filename: "application.properties"
+          - filename: "logback-spring.xml"
+
+        datasources:
+          - jndi_name: "jdbc/TestDB"
+            driver_class: "org.postgresql.Driver"
+            url: "jdbc:postgresql://192.0.2.10:5432/testdb"
+            username: "testuser"
+            password: "testpassword"
+
+        environments:
+          - name: "config/appMode"
+            type: "java.lang.String"
+            value: "test"
+
+        parameters:
+          - name: "env"
+            value: "test"
+            override: false
+
+  roles:
+    - role: ../../..
+
+  post_tasks:
+    - name: Converge | Display role execution summary
+      ansible.builtin.debug:
+        msg: "Apache Tomcat App role execution completed"

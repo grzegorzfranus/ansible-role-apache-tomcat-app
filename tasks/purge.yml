@@ -1,0 +1,32 @@
+---
+# =============================================================================
+# Ansible Role: Apache Tomcat App - Tasks: Purge
+# =============================================================================
+# Removes context XML files from conf/Catalina/localhost/ that are NOT defined
+# in tomcat_app_contexts. Only runs when tomcat_app_purge_unmanaged is true.
+# =============================================================================
+
+- name: TomcatApp | purge | Find all context XML files
+  ansible.builtin.find:
+    paths: "{{ __tomcat_app_context_dir }}"
+    patterns: "*.xml"
+    file_type: file
+  register: __tomcat_app_existing_contexts
+
+- name: TomcatApp | purge | Build list of managed context filenames
+  ansible.builtin.set_fact:
+    __tomcat_app_managed_files: "{{ tomcat_app_contexts | map(attribute='name') | map('regex_replace', '$', '.xml') | list }}"
+
+- name: TomcatApp | purge | Remove unmanaged context XML files
+  become: true
+  ansible.builtin.file:
+    path: "{{ purge_item.path }}"
+    state: absent
+  loop: "{{ __tomcat_app_existing_contexts.files }}"
+  loop_control:
+    loop_var: purge_item
+    label: "{{ purge_item.path | basename }}"
+  when:
+    - purge_item.path | basename not in __tomcat_app_managed_files
+  notify:
+    - TomcatApp | handlers | Restart Tomcat service

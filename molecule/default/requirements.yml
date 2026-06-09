@@ -1,0 +1,6 @@
+---
+roles:
+  - name: grzegorzfranus.apache_tomcat
+    src: https://github.com/grzegorzfranus/ansible-role-apache-tomcat.git
+    scm: git
+    version: main

@@ -1,0 +1,11 @@
+---
+# =============================================================================
+# Ansible Role: Apache Tomcat App - Internal Variables
+# =============================================================================
+# Internal constants and computed values.
+# These are NOT user-overridable. All use double-underscore prefix per CoP §3.1.4.
+# =============================================================================
+
+__tomcat_app_context_dir: "{{ tomcat_app_catalina_base }}/conf/Catalina/localhost"
+__tomcat_app_config_base_dir: "{{ tomcat_app_catalina_base }}/config"
+__tomcat_app_lib_dir: "{{ tomcat_app_catalina_base }}/lib"

@@ -1,0 +1,24 @@
+---
+# =============================================================================
+# Ansible Role: Apache Tomcat App - Tasks: JDBC Drivers
+# =============================================================================
+# Downloads and installs JDBC driver JAR files to CATALINA_BASE/lib/.
+# Only runs when tomcat_app_jdbc_drivers list is not empty.
+# =============================================================================
+
+- name: TomcatApp | jdbc_drivers | Download JDBC driver JAR
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ jdbc_item.url }}"
+    dest: "{{ __tomcat_app_lib_dir }}/{{ jdbc_item.filename }}"
+    checksum: "{{ jdbc_item.checksum | default(omit) }}"
+    owner: root
+    group: "{{ tomcat_app_group }}"
+    mode: "0640"
+    timeout: 60
+  loop: "{{ tomcat_app_jdbc_drivers }}"
+  loop_control:
+    loop_var: jdbc_item
+    label: "{{ jdbc_item.name }} ({{ jdbc_item.filename }})"
+  notify:
+    - TomcatApp | handlers | Restart Tomcat service

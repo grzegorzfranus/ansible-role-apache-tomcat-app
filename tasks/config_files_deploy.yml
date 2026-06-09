@@ -1,0 +1,37 @@
+---
+# =============================================================================
+# Ansible Role: Apache Tomcat App - Tasks: Config Files Deploy (per-app)
+# =============================================================================
+# Inner loop: ensures each config file exists for a single application context.
+# Called by config_files.yml with __tomcat_app_ctx set to the current context.
+#
+# The role creates empty files with correct permissions if they do not exist.
+# It does NOT overwrite existing content — file content is managed externally
+# (by the user, CI/CD pipeline, or another role).
+# =============================================================================
+
+- name: TomcatApp | config_files | Create config file if it does not exist
+  become: true
+  ansible.builtin.copy:
+    content: ""
+    dest: "{{ __tomcat_app_config_base_dir }}/{{ __tomcat_app_ctx.name }}/{{ cf_item.filename }}"
+    owner: root
+    group: "{{ tomcat_app_group }}"
+    mode: "{{ tomcat_app_config_file_mode }}"
+    force: false
+  loop: "{{ __tomcat_app_ctx.config_files }}"
+  loop_control:
+    loop_var: cf_item
+    label: "{{ __tomcat_app_ctx.name }}/{{ cf_item.filename }}"
+
+- name: TomcatApp | config_files | Ensure config file permissions
+  become: true
+  ansible.builtin.file:
+    path: "{{ __tomcat_app_config_base_dir }}/{{ __tomcat_app_ctx.name }}/{{ cf_item.filename }}"
+    owner: root
+    group: "{{ tomcat_app_group }}"
+    mode: "{{ tomcat_app_config_file_mode }}"
+  loop: "{{ __tomcat_app_ctx.config_files }}"
+  loop_control:
+    loop_var: cf_item
+    label: "{{ __tomcat_app_ctx.name }}/{{ cf_item.filename }}"
