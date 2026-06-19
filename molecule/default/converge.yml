@@ -25,6 +25,11 @@
         reload_on_change: false
         spring_config_location: true
 
+        writable_dirs:
+          - path: "/var/tmp/tomcat-testapp-uploads"
+          - path: "/var/tmp/tomcat-testapp-logs"
+            mode: "0770"
+
         config_files:
           - filename: "application.properties"
           - filename: "logback-spring.xml"

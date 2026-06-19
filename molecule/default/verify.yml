@@ -111,6 +111,31 @@
         fail_msg: "Config files should be owned by root (defense-in-depth)"
         success_msg: "Config files ownership verified (root:tomcat)"
 
+    # --- Writable directories verification ---
+    - name: Verify | Check writable directories exist
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: __verify_writable_dirs
+      loop:
+        - "/var/tmp/tomcat-testapp-uploads"
+        - "/var/tmp/tomcat-testapp-logs"
+
+    - name: Verify | Assert writable directories exist with correct ownership and default/custom permissions
+      ansible.builtin.assert:
+        that:
+          - __verify_writable_dirs.results[0].stat.exists
+          - __verify_writable_dirs.results[0].stat.isdir
+          - __verify_writable_dirs.results[0].stat.pw_name == 'tomcat'
+          - __verify_writable_dirs.results[0].stat.gr_name == 'tomcat'
+          - __verify_writable_dirs.results[0].stat.mode == '0750'
+          - __verify_writable_dirs.results[1].stat.exists
+          - __verify_writable_dirs.results[1].stat.isdir
+          - __verify_writable_dirs.results[1].stat.pw_name == 'tomcat'
+          - __verify_writable_dirs.results[1].stat.gr_name == 'tomcat'
+          - __verify_writable_dirs.results[1].stat.mode == '0770'
+        fail_msg: "Writable directories not found, have incorrect ownership, or incorrect permissions"
+        success_msg: "Writable directories verified"
+
     - name: Verify | All checks completed successfully
       ansible.builtin.debug:
         msg: "All Apache Tomcat App default scenario verification checks passed"
