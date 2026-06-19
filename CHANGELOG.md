@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/compare/v0.3.0...v0.4.0) (2026-06-19)
+
+
+### Features
+
+* add support for Enterprise Linux 8 (EL8) ([#5](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/issues/5)) ([cbf7e8a](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/commit/cbf7e8a55c139342d8401a52ed570c80c497d91f))
+
 ## [0.3.0](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/compare/v0.2.0...v0.3.0) (2026-06-19)
 
 
