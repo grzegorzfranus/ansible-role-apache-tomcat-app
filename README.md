@@ -21,7 +21,7 @@ This Ansible role manages **Apache Tomcat application contexts** and configurati
 ## 📋 Requirements
 
 - **Ansible**: 2.16 or higher
-- **Python**: 3.9 or higher on target hosts
+- **Python**: 3.6 or higher on target hosts (see compatibility note below)
 - **Privileges**: sudo/root access on target hosts (for writing to Tomcat directories)
 - **Network**: Internet access for downloading JDBC drivers (when configured)
 
@@ -30,8 +30,15 @@ This Ansible role manages **Apache Tomcat application contexts** and configurati
 | OS Family                      | Version | Status                                               |
 | ------------------------------ | ------- | ---------------------------------------------------- |
 | EL (RHEL, Rocky, Alma, Oracle) | 9       | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
+| EL (RHEL, Rocky, Alma, Oracle) | 8       | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) * |
 
-> **Note**: This role targets EL9 exclusively. It manages application-level configuration within an existing Tomcat instance installed by the `apache_tomcat` role.
+> **Note**: This role targets EL8 and EL9. It manages application-level configuration within an existing Tomcat instance installed by the `apache_tomcat` role.
+>
+> \* **EL8 Compatibility Constraints**:
+> - **Ansible & Python compatibility**: EL8 defaults to Python 3.6. Support for target Python 3.6 was dropped in `ansible-core` >= 2.17.
+>   - To run on EL8 with the system's default Python 3.6, you must use `ansible-core` <= 2.16.
+>   - If running `ansible-core` >= 2.17, EL8 targets require Python >= 3.7. However, the system `python3-dnf` package manager bindings on EL8 are compiled exclusively for Python 3.6 and will not be available on newer Python interpreters. This will cause tasks using the `dnf` module (such as installing Java or package updates in other roles or molecule scenarios) to fail.
+> - **Molecule Testing**: Due to these Python version compatibility constraints, EL8 is not officially tested in the role's Molecule test suite (which runs a newer Ansible version in CI).
 
 ### Ansible version
 
@@ -39,7 +46,7 @@ Ansible >= 2.16
 
 ### Python version
 
-Python >= 3.9
+Python >= 3.6 (with compatibility constraints on EL8)
 
 ### Setup module
 

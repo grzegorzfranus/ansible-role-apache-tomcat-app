@@ -6,7 +6,7 @@
 # These values can be overridden by setting them in your playbook or inventory.
 #
 # Supported OS distributions:
-# - EL9: Rocky Linux 9, RHEL 9, AlmaLinux 9, CentOS Stream 9
+# - EL8 and EL9: Rocky Linux, RHEL, AlmaLinux, CentOS Stream
 #
 # Sections:
 #   1. Tomcat Integration

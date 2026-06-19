@@ -6,7 +6,7 @@ argument_specs:
       - "Manages Apache Tomcat application contexts, JNDI DataSources, application config files,"
       - "Environment entries, Resource Links, Context Parameters, and optional JDBC drivers."
       - "Enterprise companion to the apache_tomcat role."
-      - "Supports EL 9 (Rocky Linux, RHEL, AlmaLinux, CentOS Stream)."
+      - "Supports EL 8 and EL 9 (RHEL, Rocky Linux, AlmaLinux, CentOS Stream)."
     author: "Grzegorz Franus"
 
     options:
