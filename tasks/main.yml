@@ -28,6 +28,14 @@
     - configure
     - config
 
+- name: TomcatApp | writable_dirs | Create custom writable directories
+  ansible.builtin.include_tasks: writable_dirs.yml
+  when:
+    - tomcat_app_contexts | selectattr('writable_dirs', 'defined') | list | length > 0
+  tags:
+    - configure
+    - writable_dirs
+
 - name: TomcatApp | contexts | Deploy application context files
   ansible.builtin.include_tasks: contexts.yml
   when:

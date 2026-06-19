@@ -15,9 +15,11 @@
         update_cache: true
       changed_when: false
 
-    - name: Prepare | Install Java JDK
+    - name: Prepare | Install Java JDK and logrotate
       ansible.builtin.dnf:
-        name: java-17-openjdk-headless
+        name:
+          - java-17-openjdk-headless
+          - logrotate
         state: present
 
     - name: Prepare | Wait for systemd to complete initialization

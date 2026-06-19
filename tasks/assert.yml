@@ -197,6 +197,32 @@
   when:
     - tomcat_app_contexts | selectattr('parameters', 'defined') | list | length > 0
 
+- name: TomcatApp | assert | Validate writable_dirs entries
+  ansible.builtin.assert:
+    that:
+      - wd_item.path is defined
+      - wd_item.path is string
+      - wd_item.path | length > 0
+      - wd_item.path is match('^/')
+      - wd_item.owner is not defined or (wd_item.owner is string and wd_item.owner | length > 0)
+      - wd_item.group is not defined or (wd_item.group is string and wd_item.group | length > 0)
+      - wd_item.mode is not defined or (wd_item.mode is string and wd_item.mode is match('^0[0-7]{3}$'))
+    fail_msg: >-
+      Invalid writable_dirs entry. path must be an absolute path. owner/group/mode
+      are optional, but if defined must be valid strings (mode matching ^0[0-7]{3}$).
+    success_msg: "Writable dir validated: {{ wd_item.path }}"
+  loop: >-
+    {{ tomcat_app_contexts
+       | selectattr('writable_dirs', 'defined')
+       | map(attribute='writable_dirs', default=[])
+       | flatten
+       | list }}
+  loop_control:
+    loop_var: wd_item
+    label: "{{ wd_item.path | default('UNNAMED') }}"
+  when:
+    - tomcat_app_contexts | selectattr('writable_dirs', 'defined') | list | length > 0
+
 # --- Section 3: JDBC Drivers ---
 
 - name: TomcatApp | assert | Validate JDBC driver entries

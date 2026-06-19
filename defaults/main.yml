@@ -53,6 +53,12 @@ tomcat_app_service_name: "tomcat"
 #       anti_resource_locking: false
 #       spring_config_location: true
 #
+#       # List of custom writable directories where the application can write files.
+#       writable_dirs:
+#         - path: "/var/log/myapp"
+#         - path: "/var/lib/myapp/uploads"
+#           mode: "0770"
+#
 #       # List of config files to ensure exist with correct permissions.
 #       # The role creates empty files if they do not exist and ensures
 #       # ownership (root:tomcat) and permissions. Content is NOT managed

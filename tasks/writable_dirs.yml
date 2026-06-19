@@ -1,0 +1,25 @@
+---
+# =============================================================================
+# Ansible Role: Apache Tomcat App - Tasks: Writable Directories
+# =============================================================================
+# Creates custom writable directories for each application context.
+# Ensures the specified paths exist with proper owner, group, and mode.
+# =============================================================================
+
+- name: TomcatApp | writable_dirs | Create writable directories
+  become: true
+  ansible.builtin.file:
+    path: "{{ wd_item.path }}"
+    state: directory
+    owner: "{{ wd_item.owner | default(tomcat_app_user) }}"
+    group: "{{ wd_item.group | default(tomcat_app_group) }}"
+    mode: "{{ wd_item.mode | default('0750') }}"
+  loop: >-
+    {{ tomcat_app_contexts
+       | selectattr('writable_dirs', 'defined')
+       | map(attribute='writable_dirs', default=[])
+       | flatten
+       | list }}
+  loop_control:
+    loop_var: wd_item
+    label: "{{ wd_item.path }}"

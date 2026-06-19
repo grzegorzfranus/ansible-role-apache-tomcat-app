@@ -194,11 +194,22 @@ Each element in `tomcat_app_contexts` supports the following properties:
 | `override`               | Whether to override Host-level configuration                             | No       | `true`   |
 | `anti_resource_locking`  | Enable `antiResourceLocking` for hot-redeploy support                    | No       | `false`  |
 | `spring_config_location` | Auto-add `spring.config.additional-location` pointing to `config/<name>/` | No      | `false`  |
+| `writable_dirs`          | List of custom writable directory definitions (see sub-table)            | No       | `[]`     |
 | `config_files`           | List of config file definitions (see sub-table)                          | No       | `[]`     |
 | `datasources`            | List of JNDI DataSource definitions (see sub-table)                      | No       | `[]`     |
 | `environments`           | List of JNDI Environment entry definitions (see sub-table)               | No       | `[]`     |
 | `resource_links`         | List of Resource Link definitions (see sub-table)                        | No       | `[]`     |
 | `parameters`             | List of Context Parameter definitions (see sub-table)                    | No       | `[]`     |
+#### Writable Directories Properties
+
+The role ensures that these directories exist and are writable by the Tomcat process.
+
+| Property | Description                                                             | Required | Default |
+| -------- | ----------------------------------------------------------------------- | -------- | ------- |
+| `path`   | Absolute path to the custom writable directory                          | ✅ Yes   | —       |
+| `owner`  | Owner of the directory                                                  | No       | `tomcat` (from `tomcat_app_user`) |
+| `group`  | Group of the directory                                                  | No       | `tomcat` (from `tomcat_app_group`) |
+| `mode`   | Octal permissions for the directory                                     | No       | `"0750"` |
 
 #### Config Files Properties
 

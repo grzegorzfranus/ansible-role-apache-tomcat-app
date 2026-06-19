@@ -81,6 +81,28 @@ argument_specs:
             type: bool
             default: false
 
+          writable_dirs:
+            description: >
+              List of custom directory paths where the application needs write permissions
+              (e.g., for logs, temp files, or uploads). The role ensures these directories
+              exist with the configured ownership and permissions.
+            type: list
+            elements: dict
+            options:
+              path:
+                description: "Absolute path to the writable directory. REQUIRED."
+                type: str
+                required: true
+              owner:
+                description: "Owner of the directory. Defaults to tomcat_app_user."
+                type: str
+              group:
+                description: "Group of the directory. Defaults to tomcat_app_group."
+                type: str
+              mode:
+                description: "Octal permissions mode for the directory (e.g. '0750'). Defaults to '0750'."
+                type: str
+
           config_files:
             description: >
               List of application config files to ensure exist in an isolated per-app
