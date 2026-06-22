@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/compare/v0.4.0...v0.4.1) (2026-06-22)
+
+
+### Bug Fixes
+
+* generate systemd drop-in for application custom write paths ([#9](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/issues/9)) ([6a45dc7](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/commit/6a45dc710a3cdb10fcfbb1a05a6f0511de9ce8c6))
+
 ## [0.4.0](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/compare/v0.3.0...v0.4.0) (2026-06-19)
 
 
