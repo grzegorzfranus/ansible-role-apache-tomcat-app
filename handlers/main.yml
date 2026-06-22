@@ -5,6 +5,11 @@
 # Service management operations triggered by tasks via notify directives.
 # =============================================================================
 
+- name: TomcatApp | handlers | Reload systemd
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+
 - name: TomcatApp | handlers | Restart Tomcat service
   become: true
   ansible.builtin.systemd:
