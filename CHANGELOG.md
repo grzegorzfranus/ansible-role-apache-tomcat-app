@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/compare/v0.4.1...v0.4.2) (2026-06-22)
+
+
+### Documentation
+
+* document systemd drop-in override for custom writable paths in README ([#11](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/issues/11)) ([61b9e3a](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/commit/61b9e3a433b1e2d25d6df693e027781953a7a051))
+
 ## [0.4.1](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/compare/v0.4.0...v0.4.1) (2026-06-22)
 
 
