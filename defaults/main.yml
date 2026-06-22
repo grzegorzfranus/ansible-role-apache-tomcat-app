@@ -99,6 +99,17 @@ tomcat_app_service_name: "tomcat"
 #         - name: "env"
 #           value: "production"
 #           override: false
+#
+#       # Optional logrotate configuration. When defined, creates /etc/logrotate.d/myapp
+#       logrotate:
+#         log_paths:
+#           - "/var/log/myapp/*.log"
+#         frequency: "daily"
+#         count: 14
+#         compress: true
+#         missingok: true
+#         copytruncate: true
+#         archive_directory_path: ""
 tomcat_app_contexts: []
 
 # -----------------------------------------------------------------------------

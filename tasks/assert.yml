@@ -223,6 +223,47 @@
   when:
     - tomcat_app_contexts | selectattr('writable_dirs', 'defined') | list | length > 0
 
+- name: TomcatApp | assert | Validate logrotate log_paths
+  ansible.builtin.assert:
+    that:
+      - lr_path is defined
+      - lr_path is string
+      - lr_path | length > 0
+      - lr_path is match('^/')
+    fail_msg: >-
+      Invalid logrotate log_path '{{ lr_path | default("UNDEFINED") }}'.
+      Must be a non-empty absolute path (start with '/').
+    success_msg: "Logrotate log_path validated: {{ lr_path }}"
+  loop: >-
+    {{ tomcat_app_contexts
+       | selectattr('logrotate', 'defined')
+       | map(attribute='logrotate')
+       | selectattr('log_paths', 'defined')
+       | map(attribute='log_paths')
+       | flatten
+       | list }}
+  loop_control:
+    loop_var: lr_path
+  when:
+    - tomcat_app_contexts | selectattr('logrotate', 'defined') | list | length > 0
+
+- name: TomcatApp | assert | Validate logrotate archive_directory_path
+  ansible.builtin.assert:
+    that:
+      - lr_item.logrotate.archive_directory_path is not defined or lr_item.logrotate.archive_directory_path == '' or lr_item.logrotate.archive_directory_path is match('^/')
+    fail_msg: >-
+      Invalid archive_directory_path for context '{{ lr_item.name }}'.
+      Must be an absolute path starting with '/'.
+    success_msg: "Logrotate archive_directory_path validated for: {{ lr_item.name }}"
+  loop: "{{ tomcat_app_contexts }}"
+  loop_control:
+    loop_var: lr_item
+    label: "{{ lr_item.name }}"
+  when:
+    - lr_item.logrotate is defined
+    - lr_item.logrotate.archive_directory_path is defined
+    - lr_item.logrotate.archive_directory_path | length > 0
+
 # --- Section 3: JDBC Drivers ---
 
 - name: TomcatApp | assert | Validate JDBC driver entries

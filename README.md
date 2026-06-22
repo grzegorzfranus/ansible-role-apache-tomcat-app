@@ -15,7 +15,8 @@ This Ansible role manages **Apache Tomcat application contexts** and configurati
 - 🚀 **Systemd Sandboxing Integration** — Automatically configures systemd drop-in override files (`/etc/systemd/system/tomcat.service.d/writable-paths.conf`) to authorize custom writable directories (`ReadWritePaths`) under systemd's strict kernel-level sandboxing
 - 🔒 **Enterprise Security** — `no_log` for sensitive files, Vault-ready passwords, root-owned configs with `0640` permissions
 - 📦 **JDBC Drivers** — Optional download and installation of JDBC driver JARs to `CATALINA_BASE/lib/`
-- 🧹 **Purge Mode** — Optionally removes unmanaged context XML files (strict mode)
+- 🔄 **Logrotate Support** — Optional per-application log rotation using `/etc/logrotate.d/` with customizable retention, frequency, compression, and olddir
+- 🧹 **Purge Mode** — Optionally removes unmanaged context XML files and logrotate configurations (strict mode)
 - ✅ **Full Validation** — Comprehensive `assert.yml` validates all inputs before deployment (type, pattern, path traversal protection)
 - 🧪 **Molecule Tested** — Automated integration tests with Rocky Linux 9
 
@@ -208,6 +209,22 @@ Each element in `tomcat_app_contexts` supports the following properties:
 | `environments`           | List of JNDI Environment entry definitions (see sub-table)               | No       | `[]`     |
 | `resource_links`         | List of Resource Link definitions (see sub-table)                        | No       | `[]`     |
 | `parameters`             | List of Context Parameter definitions (see sub-table)                    | No       | `[]`     |
+| `logrotate`              | Optional logrotate configuration definition (see sub-table)             | No       | —        |
+
+#### Logrotate Properties
+
+Each element in `logrotate` supports the following properties:
+
+| Property | Description | Required | Default |
+|---|---|---|---|
+| `log_paths` | List of log file glob patterns to rotate (e.g. `['/var/log/myapp/*.log']`). | Yes | — |
+| `frequency` | Rotation frequency: `hourly`, `daily`, `weekly`, or `monthly`. | No | `"daily"` |
+| `count` | Number of rotated log files to keep. | No | `14` |
+| `compress` | Compress rotated log files with gzip. | No | `true` |
+| `missingok` | Do not issue an error if the log file is missing. | No | `true` |
+| `copytruncate` | Truncate the original log file after creating a copy. | No | `true` |
+| `archive_directory_path` | Absolute path to move rotated files to (`olddir`). | No | `""` |
+
 #### Writable Directories Properties
 
 The role ensures that these directories exist with the correct owner/group, and configures a systemd drop-in override file (`/etc/systemd/system/tomcat.service.d/writable-paths.conf`) that appends them to systemd's `ReadWritePaths` directive to allow write access under strict systemd sandboxing. Note: Paths under `/tmp` or `/var/tmp` are automatically skipped, as they are already writable by the service due to `PrivateTmp=true` and would cause namespace loading errors.
@@ -384,11 +401,11 @@ sudo rm /opt/tomcat/instance/lib/postgresql-*.jar
 sudo systemctl restart tomcat
 ```
 
-Alternatively, enable purge mode to let the role remove all unmanaged contexts:
+Alternatively, enable purge mode to let the role remove all unmanaged contexts and logrotate configurations:
 
 ```yaml
 tomcat_app_purge_unmanaged: true
-tomcat_app_contexts: [] # empty = remove all contexts
+tomcat_app_contexts: [] # empty = remove all contexts and logrotate configurations
 ```
 
 ### Roll-back Capabilities
@@ -428,6 +445,31 @@ This role **does not** support automatic rollback. Context XML files are re-rend
         config_files:
           - filename: "application.properties"
           - filename: "logback-spring.xml"
+  roles:
+    - role: grzegorzfranus.apache_tomcat_app
+```
+
+### Spring Boot with Logrotate Config
+
+```yaml
+---
+- name: Deploy Spring Boot app with logrotate
+  hosts: tomcat_servers
+  vars:
+    tomcat_app_contexts:
+      - name: "myapp"
+        doc_base: "myapp.war"
+        writable_dirs:
+          - path: "/var/log/myapp"
+        logrotate:
+          log_paths:
+            - "/var/log/myapp/*.log"
+          frequency: "daily"
+          count: 14
+          compress: true
+          missingok: true
+          copytruncate: true
+          archive_directory_path: "/var/log/myapp/archive"
   roles:
     - role: grzegorzfranus.apache_tomcat_app
 ```

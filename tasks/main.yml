@@ -3,7 +3,7 @@
 # Ansible Role: Apache Tomcat App - Tasks: Main
 # =============================================================================
 # Orchestrates role execution in order.
-# Flow: assert → jdbc_drivers → config_files → writable_dirs → systemd → contexts → purge
+# Flow: assert → jdbc_drivers → config_files → writable_dirs → logrotate → systemd → contexts → purge
 # =============================================================================
 
 - name: TomcatApp | assert | Validate all role variables
@@ -35,6 +35,14 @@
   tags:
     - configure
     - writable_dirs
+
+- name: TomcatApp | logrotate | Deploy per-app logrotate configuration
+  ansible.builtin.include_tasks: logrotate.yml
+  when:
+    - tomcat_app_contexts | selectattr('logrotate', 'defined') | list | length > 0
+  tags:
+    - configure
+    - logrotate
 
 - name: TomcatApp | systemd | Configure systemd overrides for writable directories
   ansible.builtin.include_tasks: systemd.yml

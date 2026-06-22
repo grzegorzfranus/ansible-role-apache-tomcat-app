@@ -30,3 +30,30 @@
     - purge_item.path | basename not in __tomcat_app_managed_files
   notify:
     - TomcatApp | handlers | Restart Tomcat service
+
+- name: TomcatApp | purge | Find all Tomcat App logrotate files
+  ansible.builtin.find:
+    paths: "{{ __tomcat_app_logrotate_dir }}"
+    contains: 'Apache Tomcat App - Logrotate Configuration'
+    file_type: file
+  register: __tomcat_app_existing_logrotate_files
+
+- name: TomcatApp | purge | Build list of managed logrotate filenames
+  ansible.builtin.set_fact:
+    __tomcat_app_managed_logrotate: >-
+      {{ tomcat_app_contexts
+         | selectattr('logrotate', 'defined')
+         | map(attribute='name')
+         | list }}
+
+- name: TomcatApp | purge | Remove unmanaged logrotate files
+  become: true
+  ansible.builtin.file:
+    path: "{{ purge_lr_item.path }}"
+    state: absent
+  loop: "{{ __tomcat_app_existing_logrotate_files.files }}"
+  loop_control:
+    loop_var: purge_lr_item
+    label: "{{ purge_lr_item.path | basename }}"
+  when:
+    - purge_lr_item.path | basename not in __tomcat_app_managed_logrotate

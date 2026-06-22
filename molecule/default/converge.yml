@@ -30,6 +30,16 @@
           - path: "/var/tmp/tomcat-testapp-logs"
             mode: "0770"
 
+        logrotate:
+          log_paths:
+            - "/var/tmp/tomcat-testapp-logs/*.log"
+          frequency: "daily"
+          count: 7
+          compress: true
+          missingok: true
+          copytruncate: true
+          archive_directory_path: "/var/tmp/tomcat-testapp-logs/archive"
+
         config_files:
           - filename: "application.properties"
           - filename: "logback-spring.xml"

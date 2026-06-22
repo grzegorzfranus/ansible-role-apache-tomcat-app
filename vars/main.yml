@@ -9,3 +9,4 @@
 __tomcat_app_context_dir: "{{ tomcat_app_catalina_base }}/conf/Catalina/localhost"
 __tomcat_app_config_base_dir: "{{ tomcat_app_catalina_base }}/config"
 __tomcat_app_lib_dir: "{{ tomcat_app_catalina_base }}/lib"
+__tomcat_app_logrotate_dir: "/etc/logrotate.d"

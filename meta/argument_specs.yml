@@ -246,6 +246,44 @@ argument_specs:
                 type: bool
                 default: false
 
+          logrotate:
+            description: >
+              Optional logrotate configuration for this application.
+              When defined, a dedicated /etc/logrotate.d/<name> file is created.
+              Date extension (.%Y-%m-%d) is always enabled and cannot be disabled.
+            type: dict
+            options:
+              log_paths:
+                description: "List of log file glob patterns to rotate (e.g. '/var/log/myapp/*.log'). REQUIRED."
+                type: list
+                elements: str
+                required: true
+              frequency:
+                description: "Rotation frequency: hourly, daily, weekly, or monthly."
+                type: str
+                default: "daily"
+                choices: [hourly, daily, weekly, monthly]
+              count:
+                description: "Number of rotated log files to keep."
+                type: int
+                default: 14
+              compress:
+                description: "Compress rotated log files with gzip."
+                type: bool
+                default: true
+              missingok:
+                description: "Do not issue an error if the log file is missing."
+                type: bool
+                default: true
+              copytruncate:
+                description: "Truncate the original log file after creating a copy (safe for apps that hold open file handles)."
+                type: bool
+                default: true
+              archive_directory_path:
+                description: "Absolute path to move rotated files to (olddir). Leave empty to keep in the same directory."
+                type: str
+                default: ""
+
       # -----------------------------------------------------------------
       # 3. JDBC Drivers
       # -----------------------------------------------------------------

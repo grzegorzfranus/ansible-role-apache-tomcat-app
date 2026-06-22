@@ -1,0 +1,40 @@
+---
+# =============================================================================
+# Ansible Role: Apache Tomcat App - Tasks: Logrotate
+# =============================================================================
+# Configures log rotation for applications that define the logrotate option.
+# =============================================================================
+
+- name: TomcatApp | logrotate | Create archive directory for logrotate
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.logrotate.archive_directory_path }}"
+    state: directory
+    owner: "{{ tomcat_app_user }}"
+    group: "{{ tomcat_app_group }}"
+    mode: '0750'
+  loop: "{{ tomcat_app_contexts }}"
+  loop_control:
+    label: "{{ item.name }}: {{ item.logrotate.archive_directory_path }}"
+  when:
+    - item.logrotate is defined
+    - item.logrotate.archive_directory_path is defined
+    - item.logrotate.archive_directory_path | length > 0
+
+- name: TomcatApp | logrotate | Deploy logrotate configuration
+  become: true
+  ansible.builtin.template:
+    src: logrotate/logrotate.j2
+    dest: "{{ __tomcat_app_logrotate_dir }}/{{ item.name }}"
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+    validate: "logrotate -d %s"
+  loop: "{{ tomcat_app_contexts }}"
+  loop_control:
+    label: "{{ item.name }}"
+  vars:
+    context: "{{ item }}"
+  when:
+    - item.logrotate is defined

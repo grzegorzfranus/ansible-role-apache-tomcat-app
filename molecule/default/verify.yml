@@ -136,6 +136,74 @@
         fail_msg: "Writable directories not found, have incorrect ownership, or incorrect permissions"
         success_msg: "Writable directories verified"
 
+    # --- Logrotate verification ---
+    - name: Verify | Check logrotate file exists
+      ansible.builtin.stat:
+        path: "/etc/logrotate.d/testapp"
+      register: __verify_logrotate_file
+
+    - name: Verify | Assert logrotate file exists with correct permissions
+      ansible.builtin.assert:
+        that:
+          - __verify_logrotate_file.stat.exists
+          - __verify_logrotate_file.stat.mode == '0644'
+          - __verify_logrotate_file.stat.pw_name == 'root'
+          - __verify_logrotate_file.stat.gr_name == 'root'
+        fail_msg: "Logrotate configuration file not found or wrong permissions"
+        success_msg: "Logrotate configuration file verified (mode: {{ __verify_logrotate_file.stat.mode }})"
+
+    - name: Verify | Read logrotate file content
+      ansible.builtin.slurp:
+        src: "/etc/logrotate.d/testapp"
+      register: __verify_logrotate_content
+
+    - name: Verify | Assert logrotate file contains expected configuration
+      ansible.builtin.assert:
+        that:
+          - "'/var/tmp/tomcat-testapp-logs/*.log' in (__verify_logrotate_content.content | b64decode)"
+          - "'daily' in (__verify_logrotate_content.content | b64decode)"
+          - "'rotate 7' in (__verify_logrotate_content.content | b64decode)"
+          - "'compress' in (__verify_logrotate_content.content | b64decode)"
+          - "'copytruncate' in (__verify_logrotate_content.content | b64decode)"
+          - "'missingok' in (__verify_logrotate_content.content | b64decode)"
+          - "'dateext' in (__verify_logrotate_content.content | b64decode)"
+          - "'dateformat .%Y-%m-%d' in (__verify_logrotate_content.content | b64decode)"
+          - "'olddir /var/tmp/tomcat-testapp-logs/archive' in (__verify_logrotate_content.content | b64decode)"
+        fail_msg: "Logrotate configuration file is missing expected options"
+        success_msg: "Logrotate configuration file options verified"
+
+    # Justification: Use command module because checking if the logrotate
+    # configuration is syntactically valid requires running the logrotate
+    # command-line utility with the debug flag, which has no native Ansible module.
+    - name: Verify | Check logrotate configuration validation
+      ansible.builtin.command: "logrotate -d /etc/logrotate.d/testapp"
+      register: __verify_logrotate_debug
+      changed_when: false
+
+    - name: Verify | Assert logrotate validation succeeds
+      ansible.builtin.assert:
+        that:
+          - __verify_logrotate_debug.rc == 0
+        fail_msg: "Logrotate validation failed"
+        success_msg: "Logrotate validation succeeded"
+
+    - name: Verify | Check archive directory exists
+      ansible.builtin.stat:
+        path: "/var/tmp/tomcat-testapp-logs/archive"
+      register: __verify_archive_dir
+
+    - name: Verify | Assert archive directory exists with correct permissions
+      ansible.builtin.assert:
+        that:
+          - __verify_archive_dir.stat.exists
+          - __verify_archive_dir.stat.isdir
+          - __verify_archive_dir.stat.pw_name == 'tomcat'
+          - __verify_archive_dir.stat.gr_name == 'tomcat'
+          - __verify_archive_dir.stat.mode == '0750'
+        fail_msg: "Archive directory not found or wrong permissions"
+        success_msg: "Archive directory verified"
+
     - name: Verify | All checks completed successfully
       ansible.builtin.debug:
         msg: "All Apache Tomcat App default scenario verification checks passed"
+
