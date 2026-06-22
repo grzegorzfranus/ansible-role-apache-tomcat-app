@@ -13,6 +13,8 @@
          | selectattr('writable_dirs', 'defined')
          | map(attribute='writable_dirs')
          | flatten
+         | rejectattr('path', 'match', '^/tmp(/|$)')
+         | rejectattr('path', 'match', '^/var/tmp(/|$)')
          | list }}
 
 - name: TomcatApp | systemd | Create systemd drop-in directory
