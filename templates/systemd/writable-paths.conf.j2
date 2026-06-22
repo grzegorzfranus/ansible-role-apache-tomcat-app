@@ -1,0 +1,13 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+{{ ansible_managed | comment }}
+
+# =============================================================================
+# Apache Tomcat App - Systemd drop-in overrides
+# =============================================================================
+# Adds custom application write paths to systemd sandbox
+# =============================================================================
+
+[Service]
+{% for wd in tomcat_app_writable_dirs %}
+ReadWritePaths={{ wd.path }}
+{% endfor %}

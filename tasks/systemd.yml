@@ -1,0 +1,52 @@
+---
+# =============================================================================
+# Ansible Role: Apache Tomcat App - Tasks: Systemd
+# =============================================================================
+# Manages systemd drop-in configuration for custom writable directories.
+# Appends ReadWritePaths to the tomcat service to allow write access under ProtectSystem.
+# =============================================================================
+
+- name: TomcatApp | systemd | Extract writable directories list
+  ansible.builtin.set_fact:
+    tomcat_app_writable_dirs: >-
+      {{ tomcat_app_contexts
+         | selectattr('writable_dirs', 'defined')
+         | map(attribute='writable_dirs')
+         | flatten
+         | list }}
+
+- name: TomcatApp | systemd | Create systemd drop-in directory
+  become: true
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ tomcat_app_service_name }}.service.d"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when:
+    - tomcat_app_writable_dirs | length > 0
+
+- name: TomcatApp | systemd | Configure systemd writable paths drop-in
+  become: true
+  ansible.builtin.template:
+    src: systemd/writable-paths.conf.j2
+    dest: "/etc/systemd/system/{{ tomcat_app_service_name }}.service.d/writable-paths.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - TomcatApp | handlers | Reload systemd
+    - TomcatApp | handlers | Restart Tomcat service
+  when:
+    - tomcat_app_writable_dirs | length > 0
+
+- name: TomcatApp | systemd | Remove systemd writable paths drop-in if unused
+  become: true
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ tomcat_app_service_name }}.service.d/writable-paths.conf"
+    state: absent
+  notify:
+    - TomcatApp | handlers | Reload systemd
+    - TomcatApp | handlers | Restart Tomcat service
+  when:
+    - tomcat_app_writable_dirs | length == 0
