@@ -1,0 +1,28 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+{{ ansible_managed | comment }}
+
+# =============================================================================
+# Apache Tomcat App - Logrotate Configuration for {{ context.name }}
+# =============================================================================
+
+{% for log_path in context.logrotate.log_paths %}
+{{ log_path }} {
+    su {{ tomcat_app_user }} {{ tomcat_app_group }}
+    {{ context.logrotate.frequency | default('daily') }}
+    rotate {{ context.logrotate.count | default(14) }}
+    {% if context.logrotate.missingok | default(true) | bool %}
+    missingok
+    {% endif %}
+    {% if context.logrotate.compress | default(true) | bool %}
+    compress
+    {% endif %}
+    {% if context.logrotate.copytruncate | default(true) | bool %}
+    copytruncate
+    {% endif %}
+    dateext
+    dateformat .%Y-%m-%d
+    {% if context.logrotate.archive_directory_path is defined and context.logrotate.archive_directory_path | length > 0 %}
+    olddir {{ context.logrotate.archive_directory_path }}
+    {% endif %}
+}
+{% endfor %}
