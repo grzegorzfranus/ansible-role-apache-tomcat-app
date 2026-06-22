@@ -12,6 +12,7 @@ This Ansible role manages **Apache Tomcat application contexts** and configurati
 - 🗄️ **JNDI DataSources** — Configures database connection pools (`javax.sql.DataSource`) with full tuning parameters (pool size, validation, abandoned connection handling)
 - 📁 **Config File Isolation** — Deploys application config files to isolated per-app directories (`CATALINA_BASE/config/<app>/`) with Jinja2 templating
 - 🌱 **Spring Boot Integration** — Auto-injects `spring.config.additional-location` Context Parameter for externalized properties
+- 🚀 **Systemd Sandboxing Integration** — Automatically configures systemd drop-in override files (`/etc/systemd/system/tomcat.service.d/writable-paths.conf`) to authorize custom writable directories (`ReadWritePaths`) under systemd's strict kernel-level sandboxing
 - 🔒 **Enterprise Security** — `no_log` for sensitive files, Vault-ready passwords, root-owned configs with `0640` permissions
 - 📦 **JDBC Drivers** — Optional download and installation of JDBC driver JARs to `CATALINA_BASE/lib/`
 - 🧹 **Purge Mode** — Optionally removes unmanaged context XML files (strict mode)
@@ -209,7 +210,7 @@ Each element in `tomcat_app_contexts` supports the following properties:
 | `parameters`             | List of Context Parameter definitions (see sub-table)                    | No       | `[]`     |
 #### Writable Directories Properties
 
-The role ensures that these directories exist and are writable by the Tomcat process.
+The role ensures that these directories exist with the correct owner/group, and configures a systemd drop-in override file (`/etc/systemd/system/tomcat.service.d/writable-paths.conf`) that appends them to systemd's `ReadWritePaths` directive to allow write access under strict systemd sandboxing. Note: Paths under `/tmp` or `/var/tmp` are automatically skipped, as they are already writable by the service due to `PrivateTmp=true` and would cause namespace loading errors.
 
 | Property | Description                                                             | Required | Default |
 | -------- | ----------------------------------------------------------------------- | -------- | ------- |
