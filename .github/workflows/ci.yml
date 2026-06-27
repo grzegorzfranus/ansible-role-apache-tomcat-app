@@ -12,14 +12,9 @@ permissions:
   contents: read
 
 jobs:
-  # ================================================================
-  # 1. BRANCH NAME VALIDATION (Pre-hook)
-  # ----------------------------------------------------------------
-  # Enforces Git branch naming conventions. Rejects PR branches
-  # that do not use one of the standard enterprise prefixes.
-  # ================================================================
+  # Validate Git branch naming conventions against allowed prefixes
   branch-name-lint:
-    name: "Branch Name Lint"
+    name: "Validate Branch Naming"
     runs-on: ubuntu-latest
     steps:
       - name: "Validate branch name"
@@ -71,14 +66,9 @@ jobs:
             echo "Branch name **'$BRANCH_NAME'** conforms to conventions."
           } >> "$GITHUB_STEP_SUMMARY"
 
-  # ================================================================
-  # 1b. PR TITLE VALIDATION (Pre-hook)
-  # ----------------------------------------------------------------
-  # Enforces Conventional Commits naming conventions on PR titles.
-  # Runs first to fail fast and save runner execution minutes.
-  # ================================================================
+  # Enforce Conventional Commits naming conventions on PR titles
   pr-title-lint:
-    name: "PR Title Lint"
+    name: "Validate PR Title Format"
     runs-on: ubuntu-latest
     steps:
       - name: "Validate PR title"
@@ -130,29 +120,16 @@ jobs:
             echo "PR title **'$PR_TITLE'** conforms to Conventional Commits."
           } >> "$GITHUB_STEP_SUMMARY"
 
-  # ================================================================
-  # 2. CI PIPELINE (Reusable Workflow)
-  # ----------------------------------------------------------------
-  # Calls the centralized Ansible CI workflow which includes:
-  # YAML lint, Ansible lint, TruffleHog security scan, Molecule
-  # tests, and its own internal merge check gate.
-  # ================================================================
+  # Reusable Ansible CI workflow (YAML/Ansible lint, security scan, Molecule tests)
   ci:
     needs: [branch-name-lint, pr-title-lint]
-    uses: grzegorzfranus/github-actions-workflows/.github/workflows/ansible-ci.yml@main
+    uses: grzegorzfranus/github-workflows/.github/workflows/ansible-ci.yml@main
     with:
       molecule-distros: '["rockylinux9"]'
 
-  # ================================================================
-  # 3. MERGE CHECK — Caller-level gate for branch protection
-  # ----------------------------------------------------------------
-  # Aggregates branch name lint + reusable CI results into a
-  # single authoritative status check. Branch protection should
-  # point to THIS merge-check, not the reusable workflow's internal
-  # one. This implements the two-tier gate pattern.
-  # ================================================================
+  # Aggregate check results into a single status check for branch protection
   merge-check:
-    name: "Merge Check"
+    name: "Merge Check Gate"
     needs: [branch-name-lint, pr-title-lint, ci]
     if: always()
     runs-on: ubuntu-latest
