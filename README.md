@@ -523,9 +523,18 @@ This role **does not** support automatic rollback. Context XML files are re-rend
 
 ```
 ansible-role-apache-tomcat-app/
-├── .github/workflows/
-│   ├── ci.yml                         # CI pipeline
-│   └── release.yml                    # Release Please + Galaxy publish
+├── .github/
+│   ├── ISSUE_TEMPLATE/                # Issue templates for bug, feature, task
+│   │   ├── bug_report.yml
+│   │   ├── config.yml
+│   │   ├── feature_request.yml
+│   │   └── task.yml
+│   ├── PULL_REQUEST_TEMPLATE/         # Pull request description template
+│   │   └── pull_request_template.md
+│   ├── workflows/
+│   │   ├── ci.yml                     # CI pipeline
+│   │   └── release.yml                # Release Please + Galaxy publish
+│   └── dependabot.yml                 # Dependabot configuration for GitHub Actions
 ├── .ansible-lint                      # Ansible lint configuration
 ├── .gitignore                         # Git ignore rules
 ├── .release-please-manifest.json      # Release Please version manifest
@@ -580,8 +589,8 @@ Contributions, bug reports, and feature requests are welcome!
   - `chore:` — maintenance tasks
 - Use branch naming convention: `feature/`, `bugfix/`, `hotfix/`, `docs/`, `refactor/`, `test/`, `chore/`, `ci/`
 - Ensure your code passes all CI checks (YAML lint, Ansible lint, Molecule tests)
-- Submit a pull request describing your changes
-- For major changes, please open an issue first to discuss what you would like to change
+- Submit a pull request describing your changes (a template is available under `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` to help structure your PR description)
+- For major changes, please open an issue first to discuss what you would like to change (issue templates for bug reports, feature requests, and tasks are available under `.github/ISSUE_TEMPLATE/`)
 
 ## 📝 License
 
