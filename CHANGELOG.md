@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/compare/v1.1.0...v1.2.0) (2026-07-02)
+
+
+### Features
+
+* make logrotate su option optional ([#19](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/issues/19)) ([717acfb](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/commit/717acfb533e908f5df580317e6042c6fe54f23de))
+
 ## [1.1.0](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/compare/v1.0.0...v1.1.0) (2026-06-27)
 
 
