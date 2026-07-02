@@ -110,6 +110,7 @@ tomcat_app_service_name: "tomcat"
 #         missingok: true
 #         copytruncate: true
 #         archive_directory_path: ""
+#         su: true
 tomcat_app_contexts: []
 
 # -----------------------------------------------------------------------------

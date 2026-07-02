@@ -7,7 +7,9 @@
 
 {% for log_path in context.logrotate.log_paths %}
 {{ log_path }} {
+    {% if context.logrotate.su | default(true) | bool %}
     su {{ tomcat_app_user }} {{ tomcat_app_group }}
+    {% endif %}
     {{ context.logrotate.frequency | default('daily') }}
     rotate {{ context.logrotate.count | default(14) }}
     {% if context.logrotate.missingok | default(true) | bool %}

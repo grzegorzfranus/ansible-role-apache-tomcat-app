@@ -224,6 +224,7 @@ Each element in `logrotate` supports the following properties:
 | `missingok` | Do not issue an error if the log file is missing. | No | `true` |
 | `copytruncate` | Truncate the original log file after creating a copy. | No | `true` |
 | `archive_directory_path` | Absolute path to move rotated files to (`olddir`). | No | `""` |
+| `su` | Enable su option in logrotate config. | No | `true` |
 
 #### Writable Directories Properties
 
