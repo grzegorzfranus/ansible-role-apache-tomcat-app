@@ -264,6 +264,22 @@
     - lr_item.logrotate.archive_directory_path is defined
     - lr_item.logrotate.archive_directory_path | length > 0
 
+- name: TomcatApp | assert | Validate logrotate su option
+  ansible.builtin.assert:
+    that:
+      - lr_item.logrotate.su is not defined or lr_item.logrotate.su is boolean
+    fail_msg: >-
+      Invalid logrotate su option for context '{{ lr_item.name }}'.
+      Must be a boolean value.
+    success_msg: "Logrotate su option validated for: {{ lr_item.name }}"
+  loop: "{{ tomcat_app_contexts }}"
+  loop_control:
+    loop_var: lr_item
+    label: "{{ lr_item.name }}"
+  when:
+    - lr_item.logrotate is defined
+    - lr_item.logrotate.su is defined
+
 # --- Section 3: JDBC Drivers ---
 
 - name: TomcatApp | assert | Validate JDBC driver entries

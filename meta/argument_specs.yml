@@ -283,6 +283,10 @@ argument_specs:
                 description: "Absolute path to move rotated files to (olddir). Leave empty to keep in the same directory."
                 type: str
                 default: ""
+              su:
+                description: "Enable su option in logrotate config."
+                type: bool
+                default: true
 
       # -----------------------------------------------------------------
       # 3. JDBC Drivers
