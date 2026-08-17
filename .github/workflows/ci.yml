@@ -131,7 +131,7 @@ jobs:
 
   ci:
     needs: [branch-name-lint, pr-title-lint]
-    uses: grzegorzfranus/github-workflows/.github/workflows/ansible-ci.yml@v3.0.1
+    uses: grzegorzfranus/github-workflows/.github/workflows/ansible-ci.yml@v3.1.1
     with:
       molecule-distros: '["rockylinux9"]'
 
