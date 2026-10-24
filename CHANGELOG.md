@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/compare/v1.2.1...v1.2.2) (2026-10-24)
+
+
+### CI/CD
+
+* **workflows:** align Dependabot, release and CI workflows with github-workflows ([#27](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/issues/27)) ([#28](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/issues/28)) ([e2c804a](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/commit/e2c804a8646805227d05c3facaaf28ba6bb12c42))
+
 ## [1.2.1](https://github.com/grzegorzfranus/ansible-role-apache-tomcat-app/compare/v1.2.0...v1.2.1) (2026-07-21)
 
 
